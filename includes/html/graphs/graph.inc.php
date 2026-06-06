@@ -1,5 +1,6 @@
 <?php
 
+use App\Facades\DeviceCache;
 use App\Facades\LibrenmsConfig;
 use Illuminate\Support\Str;
 use LibreNMS\Data\Graphing\GraphParameters;
@@ -7,11 +8,9 @@ use LibreNMS\Enum\ImageFormat;
 
 try {
     if (isset($vars['device'])) {
-        $device = is_numeric($vars['device'])
-            ? device_by_id_cache($vars['device'])
-            : device_by_name($vars['device']);
-        if (isset($device['device_id'])) {
-            DeviceCache::setPrimary($device['device_id']);
+        $device = DeviceCache::get($vars['device']);
+        if ($device->exists) {
+            DeviceCache::setPrimary($device->device_id);
         }
     }
 
@@ -34,7 +33,7 @@ try {
     $nototal = ! $graph_params->visible('total');
     $nodetails = ! $graph_params->visible('details');
     $noagg = ! $graph_params->visible('aggregate');
-    $rrd_options = '';
+    $rrd_options = [];
     $env = [];
 
     if (session('preferences.timezone')) {
@@ -54,6 +53,8 @@ try {
         graph_error("$type*$subtype Graph Template Missing", "$type*$subtype");
     }
 
+    array_push($rrd_options, ...$graph_params->toRrdOptions());
+
     if ($auth === null) {
         // We are unauthenticated :(
         graph_error('No Authorization', 'No Auth');
@@ -62,19 +63,17 @@ try {
     }
 
     // check after auth
-    if (isset($vars['device']) && empty($device['device_id'])) {
+    if (isset($vars['device']) && $device->exists === false) {
         throw new \LibreNMS\Exceptions\RrdGraphException('Device not found');
     }
 
-    $rrd_options = $graph_params . ' ' . $rrd_options;
-
     // command output requested
     if (! empty($command_only)) {
+        $command = implode(' ', array_map(escapeshellarg(...), ['rrdtool', ...Rrd::buildCommand('graph', LibrenmsConfig::get('temp_dir') . '/' . Str::random(), $rrd_options)]));
+
         echo "<div class='infobox'>";
         echo "<p style='font-size: 16px; font-weight: bold;'>RRDTool Command</p>";
-        echo "<pre class='rrd-pre'>";
-        echo escapeshellcmd('rrdtool ' . Rrd::buildCommand('graph', LibrenmsConfig::get('temp_dir') . '/' . Str::random(), $rrd_options));
-        echo '</pre>';
+        echo "<pre class='rrd-pre'>$command</pre>";
         try {
             Rrd::graph($rrd_options, $env);
         } catch (\LibreNMS\Exceptions\RrdGraphException $e) {

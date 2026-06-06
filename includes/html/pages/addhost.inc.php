@@ -2,13 +2,15 @@
 
 use App\Actions\Device\ValidateDeviceAndCreate;
 use App\Facades\LibrenmsConfig;
+use App\Models\Device;
+use Illuminate\Support\Facades\Gate;
 use LibreNMS\Enum\PortAssociationMode;
 use LibreNMS\Exceptions\HostUnreachableException;
 use LibreNMS\Util\IP;
 
 $no_refresh = true;
 
-if (! Auth::user()->hasGlobalAdmin()) {
+if (Gate::denies('create', Device::class)) {
     include 'includes/html/error-no-perm.inc.php';
 
     exit;
@@ -29,7 +31,7 @@ if (! empty($_POST['hostname'])) {
     } else {
         $new_device = new \App\Models\Device(['hostname' => $hostname]);
 
-        if (Auth::user()->hasGlobalRead()) {
+        if (Gate::allows('create', Device::class)) {
             // Settings common to SNMPv2 & v3
             if ($_POST['port']) {
                 $new_device->port = strip_tags((string) $_POST['port']);
@@ -52,7 +54,7 @@ if (! empty($_POST['hostname'])) {
                     $new_device->community = $_POST['community'];
                     $communities = [$_POST['community']];
                 }
-                print_message('Adding host ' . htmlentities($hostname) . (count($communities) == 1 ? ' community' : ' communities') . ' ' . implode(', ', array_map('htmlspecialchars', $communities)) . ' port ' . htmlentities($new_device->port) . ' using ' . htmlentities($new_device->transport));
+                print_message('Adding host ' . htmlentities($hostname) . (count($communities) == 1 ? ' community' : ' communities') . ' ' . implode(', ', array_map(htmlspecialchars(...), $communities)) . ' port ' . htmlentities($new_device->port) . ' using ' . htmlentities($new_device->transport));
             } elseif ($_POST['snmpver'] === 'v3') {
                 $new_device->snmpver = 'v3';
                 $new_device->authlevel = strip_tags((string) $_POST['authlevel']);

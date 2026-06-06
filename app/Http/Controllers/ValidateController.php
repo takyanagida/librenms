@@ -12,19 +12,38 @@ class ValidateController extends Controller
 {
     public function index(): View
     {
-        return view('validate.index');
+        $this->authorize('settings.view');
+
+        $validationGroups = (new Validator())->getValidationGroups();
+
+        $groups = collect($validationGroups)
+            ->map(fn (bool $enabled, string $group) => [
+                'group' => $group,
+                'enabled' => $enabled,
+                'name' => trans("validation.validations.groups.{$group}"),
+            ])
+            ->values()
+            ->all();
+
+        return view('validate.index', [
+            'groups' => $groups,
+        ]);
     }
 
-    public function runValidation(): JsonResponse
+    public function runValidation(?string $group = null): JsonResponse
     {
+        $this->authorize('settings.view');
+
         $validator = new Validator();
-        $validator->validate();
+        $validator->validate($group ? [$group] : []);
 
         return response()->json($validator->toArray());
     }
 
     public function runFixer(Request $request): JsonResponse
     {
+        $this->authorize('settings.update');
+
         $this->validate($request, [
             'fixer' => [
                 'starts_with:LibreNMS\Validations',
@@ -35,7 +54,7 @@ class ValidateController extends Controller
                 },
             ],
         ]);
-        $fixer = $request->get('fixer');
+        $fixer = $request->input('fixer');
 
         return response()->json([
             'result' => (new $fixer)->fix(),

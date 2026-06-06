@@ -125,7 +125,7 @@ class IPv6 extends IP
         }
         array_unshift($net_bytes, 'n*'); // add pack format
 
-        return self::ntop(call_user_func_array('pack', $net_bytes));
+        return self::ntop(call_user_func_array(pack(...), $net_bytes));
     }
 
     /**
@@ -202,7 +202,7 @@ class IPv6 extends IP
     }
 
     /**
-     * Convert this IP to an snmp index hex encoded
+     * Convert this IP to an snmp index decimal encoded
      *
      * @return string
      */
@@ -210,6 +210,16 @@ class IPv6 extends IP
     {
         $ipv6_split = str_split(str_replace(':', '', $this->uncompressed()), 2);
 
-        return implode('.', array_map('hexdec', $ipv6_split));
+        return implode('.', array_map(hexdec(...), $ipv6_split));
+    }
+
+    /**
+     * Convert this IP to an snmp string hex encoded
+     *
+     * @return string
+     */
+    public function toSnmpString()
+    {
+        return implode(':', str_split(str_replace(':', '', $this->uncompressed()), 2));
     }
 }

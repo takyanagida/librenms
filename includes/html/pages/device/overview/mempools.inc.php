@@ -10,16 +10,12 @@ $graph_type = 'mempool_usage';
 
 $mempools = \DeviceCache::getPrimary()->mempools;
 
-function print_mempool_percent_bar($mempool)
-{
-}
-
 if ($mempools->isNotEmpty()) {
     $mempools_url = url('device') . '/device=' . DeviceCache::getPrimary()->device_id . '/tab=health/metric=mempool/';
     echo '
         <div class="row">
         <div class="col-md-12">
-        <div class="panel panel-default panel-condensed">
+        <div class="panel panel-default panel-condensed overview-panel">
         <div class="panel-heading">
         ';
     echo '<a href="' . $mempools_url . '">';
@@ -38,7 +34,7 @@ if ($mempools->isNotEmpty()) {
         'legend' => 'no',
         'popup_title' => DeviceCache::getPrimary()->hostname . ' - Memory Usage',
     ]);
-    echo \LibreNMS\Util\Url::graphPopup($graph, \LibreNMS\Util\Url::lazyGraphTag($graph), $mempools_url);
+    echo \LibreNMS\Util\Url::graphPopup($graph, \LibreNMS\Util\Url::lazyGraphTag($graph, 'tw:w-full tw:h-auto'), $mempools_url);
     echo '  </td>
             </tr>';
 
@@ -79,9 +75,9 @@ if ($mempools->isNotEmpty()) {
         $minigraph = \LibreNMS\Util\Url::lazyGraphTag($graph_array);
 
         $percentageBar = match ($mempool->mempool_class) {
-            'system' => Html::percentageBar(400, 20, $mempool->mempool_perc, "$used / $total ($mempool->mempool_perc%)", $free, $mempool->mempool_perc_warn, $available_used_all),
-            'virtual', 'swap' => Html::percentageBar(400, 20, $mempool->mempool_perc, "$used / $total ($mempool->mempool_perc%)", $free, $mempool->mempool_perc_warn),
-            default => Html::percentageBar(400, 20, $mempool->mempool_perc, "$used ($mempool->mempool_perc%)", '', $mempool->mempool_perc_warn),
+            'system' => Html::percentageBar(400, 10, $mempool->mempool_perc, "$used / $total ($mempool->mempool_perc%)", $free, $mempool->mempool_perc_warn, $available_used_all),
+            'virtual', 'swap' => Html::percentageBar(400, 10, $mempool->mempool_perc, "$used / $total ($mempool->mempool_perc%)", $free, $mempool->mempool_perc_warn),
+            default => Html::percentageBar(400, 10, $mempool->mempool_perc, "$used ($mempool->mempool_perc%)", '', $mempool->mempool_perc_warn),
         };
 
         echo '<tr>

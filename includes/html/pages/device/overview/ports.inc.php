@@ -9,8 +9,7 @@ if (ObjectCache::portCounts(['total'], $device['device_id'])['total'] > 0) {
             <div class="panel panel-default panel-condensed">
               <div class="panel-heading">
               <i class="fa fa-road fa-lg icon-theme" aria-hidden="true"></i><strong> Overall Traffic</strong>
-            </div>
-            <table class="table table-hover table-condensed table-striped">';
+            </div>';
 
     $graph_array = \App\Http\Controllers\Device\Tabs\OverviewController::setGraphWidth();
     $graph_array['to'] = \App\Facades\LibrenmsConfig::get('time.now');
@@ -18,7 +17,7 @@ if (ObjectCache::portCounts(['total'], $device['device_id'])['total'] > 0) {
     $graph_array['type'] = 'device_bits';
     $graph_array['from'] = \App\Facades\LibrenmsConfig::get('time.day');
     $graph_array['legend'] = 'no';
-    $graph = \LibreNMS\Util\Url::lazyGraphTag($graph_array);
+    $graph = \LibreNMS\Util\Url::lazyGraphTag($graph_array, 'tw:w-full tw:h-auto');
 
     //Generate tooltip
     $graph_array['width'] = 210;
@@ -31,23 +30,17 @@ if (ObjectCache::portCounts(['total'], $device['device_id'])['total'] > 0) {
     $graph_array['width'] = '210';
     $overlib_content = generate_overlib_content($graph_array, $device['hostname'] . ' - Device Traffic');
 
-    echo '<tr>
-          <td colspan="4">';
     echo \LibreNMS\Util\Url::overlibLink($link, $graph, $overlib_content);
-    echo '  </td>
-        </tr>';
 
     $ports = ObjectCache::portCounts(['total', 'up', 'down', 'disabled'], $device['device_id']);
-    echo '
-    <tr>
-      <td><i class="fa fa-link fa-lg" style="color:black" aria-hidden="true"></i> ' . $ports['total'] . '</td>
-      <td><i class="fa fa-link fa-lg interface-upup" aria-hidden="true"></i> ' . $ports['up'] . '</td>
-      <td><i class="fa fa-link fa-lg interface-updown" aria-hidden="true"></i> ' . $ports['down'] . '</td>
-      <td><i class="fa fa-link fa-lg interface-admindown" aria-hidden="true"></i> ' . $ports['disabled'] . '</td>
-    </tr>';
+    echo '<div class="panel-body tw:flex tw:flex-wrap tw:gap-3">
+    <a class="lnms-btn lnms-btn-default" role="button" href="' . route('device', ['device' => $device['device_id'], 'tab' => 'ports']) . '">Total: <span class="lnms-btn-badge">' . $ports['total'] . '</span></a>
+    <a class="lnms-btn lnms-btn-success" role="button" href="' . route('device', ['device' => $device['device_id'], 'tab' => 'ports', 'filter' => ['state' => ['eq' => 'up'], 'disabled' => ['eq' => '0'], 'ignore' => ['eq' => '0'], 'deleted' => ['eq' => '0']]]) . '">Up: <span class="lnms-btn-badge">' . $ports['up'] . '</span></a>
+    <a class="lnms-btn lnms-btn-danger" role="button" href="' . route('device', ['device' => $device['device_id'], 'tab' => 'ports', 'filter' => ['state' => ['eq' => 'down'], 'disabled' => ['eq' => '0'], 'ignore' => ['eq' => '0'], 'deleted' => ['eq' => '0']]]) . '">Down: <span class="lnms-btn-badge">' . $ports['down'] . '</span></a>
+    <a class="lnms-btn lnms-btn-primary" role="button" href="' . route('device', ['device' => $device['device_id'], 'tab' => 'ports', 'filter' => ['disabled' => ['eq' => '1']]]) . '">Disabled: <span class="lnms-btn-badge">' . $ports['disabled'] . '</span></a>
+    </div>';
 
-    echo '<tr>
-          <td colspan="4">';
+    echo '<div class="panel-footer">';
 
     $ifsep = '';
 
@@ -59,9 +52,7 @@ if (ObjectCache::portCounts(['total'], $device['device_id'])['total'] > 0) {
     }
 
     unset($ifsep);
-    echo '  </td>';
-    echo '</tr>';
-    echo '</table>';
+    echo '</div>';
     echo '</div>';
     echo '</div>';
     echo '</div>';

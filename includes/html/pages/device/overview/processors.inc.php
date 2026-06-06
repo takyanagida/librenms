@@ -6,7 +6,7 @@ if (count($processors)) {
     echo '
       <div class="row">
         <div class="col-md-12 ">
-          <div class="panel panel-default panel-condensed">
+          <div class="panel panel-default panel-condensed overview-panel">
             <div class="panel-heading">
 ';
     echo '<a href="device/device=' . $device['device_id'] . '/tab=health/metric=processor/">';
@@ -49,7 +49,12 @@ if (count($processors)) {
             echo '<tr>
                 <td class="col-md-4">' . \LibreNMS\Util\Url::overlibLink($link, $text_descr, $overlib_content) . '</td>
                 <td class="col-md-4">' . \LibreNMS\Util\Url::overlibLink($link, $minigraph, $overlib_content) . '</td>
-                <td class="col-md-4">' . \LibreNMS\Util\Url::overlibLink($link, print_percentage_bar(200, 20, $percent, null, 'ffffff', $background['left'], $percent . '%', 'ffffff', $background['right']), $overlib_content) . '
+                <td class="col-md-4">' . \LibreNMS\Util\Url::overlibLink($link, \LibreNMS\Util\Html::percentageBar(200, 10, $percent, null, $percent . '%', null, null, [
+                'left' => $background['left'],
+                'left_text' => null,
+                'right' => $background['right'],
+                'right_text' => null,
+            ]), $overlib_content) . '
                 </a></td>
               </tr>';
         } else {
@@ -73,7 +78,7 @@ if (count($processors)) {
         //Generate average cpu graph
         $graph_array['device'] = $device['device_id'];
         $graph_array['type'] = 'device_processor';
-        $graph = \LibreNMS\Util\Url::lazyGraphTag($graph_array);
+        $graph = \LibreNMS\Util\Url::lazyGraphTag($graph_array, 'tw:w-full tw:h-auto');
 
         //Generate link to graphs
         $link_array = $graph_array;
@@ -87,7 +92,7 @@ if (count($processors)) {
         $overlib_content = generate_overlib_content($graph_array, $device['hostname'] . ' - CPU usage');
 
         echo '<tr>
-              <td colspan="4">';
+              <td colspan="12">';
         echo \LibreNMS\Util\Url::overlibLink($link, $graph, $overlib_content);
         echo '  </td>
             </tr>';
@@ -99,9 +104,13 @@ if (count($processors)) {
 
             echo '
               <tr>
-                <td class="col-md-4">' . \LibreNMS\Util\Url::overlibLink($link, $values['descr'], $overlib_content) . '</td>
-                <td class="col-md-4">' . \LibreNMS\Util\Url::overlibLink($link, 'x' . $values['count'], $overlib_content) . '</td>
-                <td class="col-md-4">' . \LibreNMS\Util\Url::overlibLink($link, print_percentage_bar(200, 20, $percent_usage, null, 'ffffff', $background['left'], $percent_usage . '%', 'ffffff', $background['right']), $overlib_content) . '</td>
+                <td class="col-md-8">' . \LibreNMS\Util\Url::overlibLink($link, 'x' . $values['count'] . ' ' . $values['descr'], $overlib_content) . '</td>
+                <td class="col-md-4">' . \LibreNMS\Util\Url::overlibLink($link, \LibreNMS\Util\Html::percentageBar(400, 10, $percent_usage, null, $percent_usage . '%', null, null, [
+                'left' => $background['left'],
+                'left_text' => null,
+                'right' => $background['right'],
+                'right_text' => null,
+            ]), $overlib_content) . '</td>
               </tr>';
         }
     }

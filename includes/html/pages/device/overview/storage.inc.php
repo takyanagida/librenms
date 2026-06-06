@@ -11,7 +11,7 @@ if (count($drives)) {
     echo '
           <div class="row">
             <div class="col-md-12">
-              <div class="panel panel-default panel-condensed">
+              <div class="panel panel-default panel-condensed overview-panel">
                 <div class="panel-heading">';
     echo '<a href="device/device=' . $device['device_id'] . '/tab=health/metric=storage/">';
     echo '<i class="fa fa-database fa-lg icon-theme" aria-hidden="true"></i> <strong>Storage</strong></a>';
@@ -76,7 +76,12 @@ if (count($drives)) {
         echo '<tr>
            <td class="col-md-4">' . \LibreNMS\Util\Url::overlibLink($link, $drive['storage_descr'], $overlib_content) . '</td>
            <td class="col-md-4">' . \LibreNMS\Util\Url::overlibLink($link, $minigraph, $overlib_content) . '</td>
-           <td class="col-md-4">' . \LibreNMS\Util\Url::overlibLink($link, print_percentage_bar(400, 20, $percent, "$used / $total ($percent%)", 'ffffff', $background['left'], $free, 'ffffff', $background['right']), $overlib_content) . '
+           <td class="col-md-4">' . \LibreNMS\Util\Url::overlibLink($link, \LibreNMS\Util\Html::percentageBar(400, 10, $percent, "$used / $total ($percent%)", $free, null, null, [
+            'left' => $background['left'],
+            'left_text' => null,
+            'right' => $background['right'],
+            'right_text' => null,
+        ]), $overlib_content) . '
            </a></td>
          </tr>';
     }//end foreach
